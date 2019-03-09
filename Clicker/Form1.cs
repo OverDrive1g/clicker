@@ -13,28 +13,28 @@ namespace Clicker
 {
     public partial class Form1 : Form
     {
-        private Random rnd;
-        private double score = 0;
-        private double clickPower = 1;
-        private double powerCrit;
-        private double priceCrit;
-        private bool isBoost = false;
+        private readonly Random _rnd;
+        private double _score;
+        private double _clickPower = 1;
+        private double _powerCrit;
+        private double _priceCrit;
+        private bool _isBoost;
 
-        private Image currImg;
-        private Image critImg;
+        private Image _currImg;
+        private readonly Image _critImg;
 
-        BindingList<BaseUpgrade> upgradeList;
-        BindingList<Statistic> statisticsList;
+        readonly BindingList<BaseUpgrade> _upgradeList;
+        readonly BindingList<Statistic> _statisticsList;
 
         public Form1()
         {
             InitializeComponent();
-            rnd = new Random();
+            _rnd = new Random();
 
-            powerCrit = 5;
-            priceCrit = 10;
+            _powerCrit = 5;
+            _priceCrit = 10;
             
-            upgradeList = new BindingList<BaseUpgrade>()
+            _upgradeList = new BindingList<BaseUpgrade>
             {
                 new BaseUpgrade("Test1", 10, 1.07, 0,1),
                 new BaseUpgrade("Test2", 100, 1.08, 0,5),
@@ -43,7 +43,7 @@ namespace Clicker
                 new BaseUpgrade("Test5", 100000, 1.2, 0,100)
             };
 
-            statisticsList = new BindingList<Statistic>()
+            _statisticsList = new BindingList<Statistic>
             {
                 new Statistic("Количество кликов вручную",0),
                 new Statistic("Количество автокликов",0),
@@ -53,34 +53,34 @@ namespace Clicker
                 new Statistic("Всего очков",0),
                 new Statistic("Очки за криты",0)
             };
-            dataGridView2.DataSource = statisticsList;
+            dataGridView2.DataSource = _statisticsList;
 
-            var source = new BindingSource(upgradeList, null);
+            var source = new BindingSource(_upgradeList, null);
 
             dataGridView1.DataSource = source;
 
-            currImg = global::Clicker.Properties.Resources._16;
-            critImg = global::Clicker.Properties.Resources._17;
+            _currImg = Properties.Resources._16;
+            _critImg = Properties.Resources._17;
         }
 
         private void pictureBox1_Click(object sender, EventArgs e)
         {
-            statisticsList[0].Value++;
-            doClick();
+            _statisticsList[0].Value++;
+            DoClick();
             dataGridView2.Refresh();
         }
 
-        private void doClick()
+        private void DoClick()
         {
             
-            var i = rnd.Next(10);
-            var j = rnd.Next(100);
+            var i = _rnd.Next(10);
+            var j = _rnd.Next(100);
 
-            if (j == 1 && !isBoost) { startBoost(); }
+            if (j == 1 && !_isBoost) { StartBoost(); }
 
-            var booster = 0;
+            int booster;
 
-            if (isBoost)
+            if (_isBoost)
             {
                 booster = 10;
 
@@ -89,102 +89,107 @@ namespace Clicker
             {
                 booster = 1;
             }
-            var inc = (i == 1 ? getClickStrange() * powerCrit : getClickStrange()) * booster;
+            var inc = (i == 1 ? GetClickStrange() * _powerCrit : GetClickStrange()) * booster;
 
             if (i == 1)
             {
-                statisticsList[6].Value += inc;
+                _statisticsList[6].Value += inc;
                 dataGridView2.Refresh();
             }
 
-            score+=inc;
+            _score+=inc;
 
-            statisticsList[5].Value += inc;
+            _statisticsList[5].Value += inc;
             dataGridView2.Refresh();
 
             if (i == 1)
             {
-                this.pictureBox1.Image = critImg;
-                statisticsList[4].Value++;
+                pictureBox1.Image = _critImg;
+                _statisticsList[4].Value++;
                 dataGridView2.Refresh();
             }
 
-            updateScore();
+            UpdateScore();
         }
 
-        public double getClickStrange()
+        private double GetClickStrange()
         {
-            return clickPower;
+            return _clickPower;
         }
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
-            pictureClickDown();
+            PictureClickDown();
 
         }
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
-            pictureClickUp();
+            PictureClickUp();
         }
 
-        private void updateScore()
+        private void UpdateScore()
         {
-            this.scoreLabel.Text = "Счет: " + score;
-            label3.Text = "Сила клика: "+getClickStrange();
+            scoreLabel.Text = "Счет: " + _score;
+            label3.Text = "Сила клика: "+GetClickStrange();
         }
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 0)
+            switch (e.ColumnIndex)
             {
-                var item = upgradeList[e.RowIndex];
-                if (score >= item.Price)
+                case 0:
                 {
-                    score -= item.Price;
-                    item.Count++;
+                    var item = _upgradeList[e.RowIndex];
+                    if (_score >= item.Price)
+                    {
+                        _score -= item.Price;
+                        item.Count++;
 
-                    updateScore();
-                }
-                statisticsList[2].Value++;
-                dataGridView2.Refresh();
-                dataGridView1.Refresh();
-
-                var newPower = upgradeList.Sum(itm => itm.Power * itm.Count);
-                clickPower = newPower + 1;
-            }
-            else if (e.ColumnIndex == 1)
-            {
-                var item = upgradeList[e.RowIndex];
-
-                while (score >= item.Price)
-                {
-                    score -= item.Price;
-                    item.Count++;
-                    statisticsList[2].Value++;
+                        UpdateScore();
+                    }
+                    _statisticsList[2].Value++;
                     dataGridView2.Refresh();
+                    dataGridView1.Refresh();
+
+                    var newPower = _upgradeList.Sum(itm => itm.Power * itm.Count);
+                    _clickPower = newPower + 1;
+                    break;
                 }
+                case 1:
+                {
+                    var item = _upgradeList[e.RowIndex];
 
-                updateScore();
+                    while (_score >= item.Price)
+                    {
+                        _score -= item.Price;
+                        item.Count++;
+                        _statisticsList[2].Value++;
+                        dataGridView2.Refresh();
+                    }
 
-                dataGridView1.Refresh();
+                    UpdateScore();
 
-                var newPower = upgradeList.Sum(itm => itm.Power * itm.Count);
-                clickPower = newPower + 1;
+                    dataGridView1.Refresh();
+
+                    var newPower = _upgradeList.Sum(itm => itm.Power * itm.Count);
+                    _clickPower = newPower + 1;
+                    break;
+                }
             }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (score >= priceCrit)
+            if (_score >= _priceCrit)
             {
-                score -= priceCrit;
-                priceCrit *= 10;
+                _score -= _priceCrit;
+                _priceCrit *= 10;
 
-                powerCrit *= 1.5;
+                _powerCrit *= 1.5;
             }
-            label2.Text = "Сила крита: x" + powerCrit;
-            button1.Text = "Цена - " + priceCrit;
+            label2.Text = "Сила крита: x" + _powerCrit;
+            button1.Text = "Цена - " + _priceCrit;
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
@@ -207,18 +212,18 @@ namespace Clicker
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            pictureClickDown();
+            PictureClickDown();
             pictureBox1.Update();
-            statisticsList[1].Value++;
-            doClick();
+            _statisticsList[1].Value++;
+            DoClick();
             dataGridView2.Refresh();
             System.Threading.Thread.Sleep(50);
-            pictureClickUp();
+            PictureClickUp();
 
         }
 
-        private void pictureClickDown() {
-            pictureBox1.Image = currImg;
+        private void PictureClickDown() {
+            pictureBox1.Image = _currImg;
             var curLocation = pictureBox1.Location;
             curLocation.X += 5;
             curLocation.Y += 5;
@@ -233,7 +238,7 @@ namespace Clicker
             pictureBox1.Size = curSize;
         }
 
-        private void pictureClickUp() {
+        private void PictureClickUp() {
             var curLocation = pictureBox1.Location;
             curLocation.X -= 5;
             curLocation.Y -= 5;
@@ -252,32 +257,30 @@ namespace Clicker
         {
             progressBar1.Value += 1;
 
-            if (progressBar1.Value == 100)
-            {
-                timer2.Stop();
-                stopBoost();
-            }            
+            if (progressBar1.Value != 100) return;
+            timer2.Stop();
+            StopBoost();
         }
 
-        private void startBoost()
+        private void StartBoost()
         {
-            isBoost = true;
-            currImg = global::Clicker.Properties.Resources._18;
+            _isBoost = true;
+            _currImg = Properties.Resources._18;
             progressBar1.Value = 0;
             timer2.Start();
-            this.BackColor = Color.LightPink;
+            BackColor = Color.LightPink;
 
-            statisticsList[3].Value++;
+            _statisticsList[3].Value++;
             dataGridView2.Refresh();
         }
 
-        private void stopBoost()
+        private void StopBoost()
         {
-            isBoost = false;
-            currImg = global::Clicker.Properties.Resources._16;
+            _isBoost = false;
+            _currImg = Properties.Resources._16;
             progressBar1.Value = 0;
             timer2.Stop();
-            BackColor = System.Drawing.SystemColors.Control;
+            BackColor = SystemColors.Control;
 
         }
     }

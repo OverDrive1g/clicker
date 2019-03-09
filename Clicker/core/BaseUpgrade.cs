@@ -9,29 +9,28 @@ namespace Clicker.core
 {
     class BaseUpgrade
     {
-        public String Name { get; set; }
-        public double basePrice;
-        public double multipiler;
+        private string Name { get; set; }
+        private readonly double _basePrice;
+        private readonly double _multipiler;
         public int Count { get; set; }
         public int Power { get; private set; }
         
-        public double Price { 
-            get {
-                return basePrice * Math.Pow(multipiler, Count);  
-            } 
-            private set {}
+        public double Price
+        {
+            get => _basePrice * Math.Pow(_multipiler, Count);
+            private set => throw new NotImplementedException();
         }
 
         public BaseUpgrade(String name, double basePrice, double multipiler, int count, int power)
         {
-            this.Name = name;
-            this.basePrice = basePrice;
-            this.multipiler = multipiler;
-            this.Count = count;
-            this.Power = power;
+            Name = name;
+            _basePrice = basePrice;
+            _multipiler = multipiler;
+            Count = count;
+            Power = power;
         }
 
-        public void incPower()
+        public void IncPower()
         {
             Power++;
         }
